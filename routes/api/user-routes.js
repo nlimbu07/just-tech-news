@@ -56,13 +56,14 @@ router.put('/:id', (req, res) => {
 
   // if req.body has exact key/value pairs to match the model, you can just use `req.body` instead
   User.update(req.body, {
+    individualHooks: true,
     where: {
       id: req.params.id,
     },
   })
     .then((dbUserData) => {
-      if (!dbUserData) {
-        res.status(400).res.json({ message: 'No user found with this id' });
+      if (!dbUserData[0]) {
+        res.status(400).json({ message: 'No user found with this id' });
         return;
       }
       res.json(dbUserData);
