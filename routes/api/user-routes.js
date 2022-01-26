@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { User } = require('../../models/User');
+const { User } = require('../../models');
 
 // GET /api/users
 router.get('/', (req, res) => {
@@ -75,14 +75,14 @@ router.put('/:id', (req, res) => {
 
 // DELETE /api/users/1
 router.delete('/api/:id', (req, res) => {
-  User.destory({
+  User.destroy({
     where: {
       id: req.params.id,
     },
   })
     .then((dbUserData) => {
       if (!dbUserData) {
-        res.status(400).json({ message: 'No user found with this id' });
+        res.status(404).json({ message: 'No user found with this id' });
         return;
       }
       res.json(dbUserData);
