@@ -1,12 +1,24 @@
 const router = require('express').Router();
+const sequelize = require('../../config/connection');
 // to retrieve not only information about each post, but also the user that posted it
-const { Post, User } = require('../../models');
+const { Post, User, Vote } = require('../../models');
 
 // get all users
 router.get('/', (req, res) => {
   console.log('========================');
   Post.findAll({
-    attributes: ['id', 'post_url', 'title', 'created_at'],
+    attributes: [
+      'id',
+      'post_url',
+      'title',
+      'created_at',
+      [
+        sequelize.literal(
+          '(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)'
+        ),
+        'vote_count',
+      ],
+    ],
     // in order to show the latest news first, order property is used, DESC is descending
     order: [['created_at', 'DESC']],
     // included JOIN to the User table by adding Include property
@@ -32,7 +44,18 @@ router.get('/:id', (req, res) => {
       // req.params is used to retrieve the id property from the route
       id: req.params.id,
     },
-    attributes: ['id', 'post_url', 'title', 'created_at'],
+    attributes: [
+      'id',
+      'post_url',
+      'title',
+      'created_at',
+      [
+        sequelize.literal(
+          '(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)'
+        ),
+        'vote_count',
+      ],
+    ],
     include: [
       {
         model: User,
@@ -42,7 +65,7 @@ router.get('/:id', (req, res) => {
   })
     .then((dbPostData) => {
       if (!dbPostData) {
-        res.status(400).json({ message: 'No post found with this id' });
+        res.status(404).json({ message: 'No post found with this id' });
         return;
       }
       res.json(dbPostData);
@@ -69,7 +92,17 @@ router.post('/', (req, res) => {
     });
 });
 
-// Update a Post's Title
+router.put('/upvote', (req, res) => {
+  // custom static method created in models/Post.js
+  Post.upvote(req.body, { Vote })
+    .then((updatedPostData) => res.json(updatedPostData))
+    .catch((err) => {
+      console.log(err);
+      res.status(400).json(err);
+    });
+});
+
+// PUT /api/posts/upvote
 router.put('/:id', (req, res) => {
   Post.update(
     {
