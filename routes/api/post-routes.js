@@ -1,11 +1,11 @@
 const router = require('express').Router();
 const sequelize = require('../../config/connection');
 // to retrieve not only information about each post, but also the user that posted it
-const { Post, User, Vote } = require('../../models');
+const { Post, User, Vote, Comment } = require('../../models');
 
 // get all users
 router.get('/', (req, res) => {
-  console.log('========================');
+  console.log('======================');
   Post.findAll({
     attributes: [
       'id',
@@ -19,10 +19,16 @@ router.get('/', (req, res) => {
         'vote_count',
       ],
     ],
-    // in order to show the latest news first, order property is used, DESC is descending
     order: [['created_at', 'DESC']],
-    // included JOIN to the User table by adding Include property
     include: [
+      {
+        model: Comment,
+        attributes: ['id', 'comment_text', 'post_id', 'user_id', 'created_at'],
+        include: {
+          model: User,
+          attributes: ['username'],
+        },
+      },
       {
         model: User,
         attributes: ['username'],
@@ -39,9 +45,7 @@ router.get('/', (req, res) => {
 // GET a Single Post
 router.get('/:id', (req, res) => {
   Post.findOne({
-    // where property to set the value of the id using req.params.id
     where: {
-      // req.params is used to retrieve the id property from the route
       id: req.params.id,
     },
     attributes: [
@@ -56,7 +60,17 @@ router.get('/:id', (req, res) => {
         'vote_count',
       ],
     ],
+    // included JOIN to the User table by adding Include property
     include: [
+      // include the Comment model here
+      {
+        model: Comment,
+        attributes: ['id', 'comment_text', 'post_id', 'user-id', 'created_at'],
+        include: {
+          model: User,
+          attributes: ['username'],
+        },
+      },
       {
         model: User,
         attributes: ['username'],
@@ -94,7 +108,7 @@ router.post('/', (req, res) => {
 
 router.put('/upvote', (req, res) => {
   // custom static method created in models/Post.js
-  Post.upvote(req.body, { Vote })
+  Post.upvote(req.body, { Vote, Comment, User })
     .then((updatedPostData) => res.json(updatedPostData))
     .catch((err) => {
       console.log(err);
