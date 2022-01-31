@@ -1,7 +1,6 @@
 const router = require('express').Router();
 const sequelize = require('../../config/connection');
-// to retrieve not only information about each post, but also the user that posted it
-const { Post, User, Vote, Comment } = require('../../models');
+const { Post, User, Comment, Vote } = require('../../models');
 
 // get all users
 router.get('/', (req, res) => {
@@ -42,7 +41,6 @@ router.get('/', (req, res) => {
     });
 });
 
-// GET a Single Post
 router.get('/:id', (req, res) => {
   Post.findOne({
     where: {
@@ -60,12 +58,10 @@ router.get('/:id', (req, res) => {
         'vote_count',
       ],
     ],
-    // included JOIN to the User table by adding Include property
     include: [
-      // include the Comment model here
       {
         model: Comment,
-        attributes: ['id', 'comment_text', 'post_id', 'user-id', 'created_at'],
+        attributes: ['id', 'comment_text', 'post_id', 'user_id', 'created_at'],
         include: {
           model: User,
           attributes: ['username'],
@@ -90,11 +86,9 @@ router.get('/:id', (req, res) => {
     });
 });
 
-// Create a Post
 router.post('/', (req, res) => {
   // expects {title: 'Taskmaster goes public!', post_url: 'https://taskmaster.com/press', user_id: 1}
   Post.create({
-    // using req.body to populate the columns in the post table
     title: req.body.title,
     post_url: req.body.post_url,
     user_id: req.body.user_id,
@@ -109,14 +103,13 @@ router.post('/', (req, res) => {
 router.put('/upvote', (req, res) => {
   // custom static method created in models/Post.js
   Post.upvote(req.body, { Vote, Comment, User })
-    .then((updatedPostData) => res.json(updatedPostData))
+    .then((updatedVoteData) => res.json(updatedVoteData))
     .catch((err) => {
       console.log(err);
-      res.status(400).json(err);
+      res.status(500).json(err);
     });
 });
 
-// PUT /api/posts/upvote
 router.put('/:id', (req, res) => {
   Post.update(
     {
@@ -141,7 +134,6 @@ router.put('/:id', (req, res) => {
     });
 });
 
-// Delete a Post
 router.delete('/:id', (req, res) => {
   Post.destroy({
     where: {

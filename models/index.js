@@ -1,26 +1,24 @@
-const User = require('./User');
+// import all models
 const Post = require('./Post');
+const User = require('./User');
 const Vote = require('./Vote');
-const Comment = require('./Comment.js');
+const Comment = require('./Comment');
 
 // create associations
 User.hasMany(Post, {
   foreignKey: 'user_id',
 });
 
-// reverse associations: defining the relationship of the Post model to the User
 Post.belongsTo(User, {
   foreignKey: 'user_id',
 });
 
-// to see total of votes a user created
 User.belongsToMany(Post, {
   through: Vote,
   as: 'voted_posts',
   foreignKey: 'user_id',
 });
 
-// to see all of the post that user voted on.
 Post.belongsToMany(User, {
   through: Vote,
   as: 'voted_posts',

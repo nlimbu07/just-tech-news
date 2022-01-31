@@ -1,0 +1,22 @@
+<ol class='post-list'>
+  {{#each posts}}
+    <li>
+      <article class='post'>
+        <div class='title'>
+          {{! when template is rendered and sent to the client, the expressions will be replaced by the correct data }}
+          <a href='{{post_url}}' target='_blank'>{{title}}</a>
+          <span>({{post_url}})</span>
+        </div>
+        <div class='meta'>
+          {{vote_count}}
+          point(s) by
+          {{user.username}}
+          on
+          {{created_at}}
+          |
+          <a href='/post/{{id}}'>{{comments.length}} comment(s)</a>
+        </div>
+      </article>
+    </li>
+  {{/each}}
+</ol>
